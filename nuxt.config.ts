@@ -5,4 +5,6 @@ export default defineNuxtConfig({
 			supabaseKey: '',
 		},
 	},
+
+	compatibilityDate: '2025-03-27',
 });
