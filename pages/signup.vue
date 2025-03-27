@@ -26,9 +26,9 @@ const supabase = createClient(
 	config.public.supabaseKey
 );
 
-const email = ref('');
-const password = ref('');
-const errorMessage = ref('');
+const email = ref();
+const password = ref();
+const errorMessage = ref();
 
 const handleSignup = async () => {
 	try {
@@ -40,6 +40,7 @@ const handleSignup = async () => {
 			? error.message
 			: 'Signup successful! Please check your email.';
 	} catch (err) {
+		console.error(err);
 		errorMessage.value = 'An unexpected error occurred.';
 	}
 };
