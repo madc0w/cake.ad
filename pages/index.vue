@@ -11,32 +11,43 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
-// const config = useRuntimeConfig();
-
-// const supabase = createClient(
-// 	config.public.supabaseUrl,
-// 	config.public.supabaseKey
-// );
-
-// const { data, error } = await supabase.from('Messages').select('text').limit(1);
-
-// if (error) {
-// 	console.error('Supabase Error:', JSON.stringify(error));
-// }
-
-// const message = error
-// 	? 'Error fetching data'
-// 	: data?.[0]?.text || 'No data found';
-
 const router = useRouter();
 
 onMounted(async () => {
 	const { $supabase } = useNuxtApp();
-	const user = (await $supabase.auth.getUser()).data.user;
-	console.log('user', user);
-	if (user) {
-		// ...existing code...
-	} else {
+	try {
+		// Refresh the session before fetching the user
+		const { data: session, error: sessionError } =
+			await $supabase.auth.getSession();
+		if (sessionError) {
+			console.error('Error refreshing session:', sessionError);
+			router.push('/signup');
+			return;
+		}
+
+		const {
+			data: { user },
+			error,
+		} = await $supabase.auth.getUser();
+		if (error) {
+			console.error('Error fetching user:', error);
+			router.push('/signup');
+		} else if (user) {
+			console.log('user', user);
+			router.push('/');
+		} else {
+			router.push('/signup');
+		}
+
+		// Listen for auth state changes to handle post-signup login
+		$supabase.auth.onAuthStateChange((event, session) => {
+			if (event === 'SIGNED_IN' && session?.user) {
+				console.log('User signed in:', session.user);
+				router.push('/'); // Redirect to home or another route after signing in
+			}
+		});
+	} catch (err) {
+		console.error('Unexpected error:', err);
 		router.push('/signup');
 	}
 });
